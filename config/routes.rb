@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  ActiveAdmin.routes(self)
+  #devise_for :admin_users, ActiveAdmin::Devise.config
   get 'pages/index'
   devise_for :users
   root 'tweets#index'

@@ -5,14 +5,27 @@ class TweetsController < ApplicationController
   # GET /tweets
   # GET /tweets.json
   def index
-    @tweets = Tweet.all
-    organized_pages
+
+    if !current_user
+
+      @tweets = Tweet.all
+      organized_pages
+      @tweet= Tweet.new
+      @retweets= Retweet.all
+
+    else
+      @q = Tweet.tweets_for_me(current_user.followings.pluck(:id)).ransack(params[:q])
+      @tweets = @q.result.order('created_at DESC').page params[:page] 
+      @retweets=Retweet.retweets_for_me(current_user.followings.pluck(:id)).order('created_at DESC').page params[:page]  
+
+    end
+
   end
 
   # GET /tweets/1
   # GET /tweets/1.json
   def show
-    #@image_profile = @user.image_url
+    @likes = Like.all 
   end
 
   # GET /tweets/new
@@ -29,17 +42,11 @@ class TweetsController < ApplicationController
   def create
     @tweet = Tweet.new(tweet_params)
     @tweet.user = current_user
-
-    respond_to do |format|
-      if @tweet.save
-        #format.html { redirect_to @tweet, notice: 'El tweet se creó correctamente.' }
-        format.html { redirect_to root_path, notice: 'El tweet se creó correctamente.' }
-        format.json { render :show, status: :created, location: @tweet }
-      else
-        format.html { render :new }
-        format.json { render json: @tweet.errors, status: :unprocessable_entity }
-      end
-    end
+    if @tweet.save
+      redirect_to root_path
+    else
+      render 'new'
+    end 
   end
 
   # PATCH/PUT /tweets/1
