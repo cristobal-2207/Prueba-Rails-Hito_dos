@@ -9,6 +9,8 @@ Rails.application.routes.draw do
     post 'retweet', to: 'tweets#retweet'
   end
 
+  get "tweets(?search=:search)", to: 'tweets#search', as:'search' 
+
   resources :retweets
   resources :likes
   # For details on the DSL available within this file, see https://guides.rubyonrails.org/routing.html

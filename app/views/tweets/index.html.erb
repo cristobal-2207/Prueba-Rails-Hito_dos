@@ -1,14 +1,14 @@
 <h1>Tweets</h1>
 
-<% if current_user %>  
-  
-  <%= search_form_for @q, method: :get ,url: root_path do |f| %>
-    <%= f.label :content_cont %>
-    <%= f.search_field :content_cont %>
-    <%= f.submit 'buscar'%>
-  <%end %> 
+<% if current_user %>   
   <%= render 'form', tweet: @tweet %>
 <% end %>
+
+<%= search_form_for @q, method: :get ,url: root_path do |f| %>
+  <%= f.label :content_cont %>
+  <%= f.search_field :content_cont %>
+  <%= f.submit 'buscar'%>
+<%end %>
 
 <table>
   <thead>
@@ -25,7 +25,16 @@
         <td><%=image_tag tweet.user.image_url, class: "images_avatar rounded-circle border border-info " %></td>  
         <td><%= tweet.user.name %></td>
         <td><%= link_to time_ago_in_words(tweet.created_at) , tweet%></td> 
-        <td><%= tweet.content %></td>
+        <td><% @content = tweet.content %>
+        <% @content = @content.split(" ") %>
+          <% @newcontent = @content.each do |item| %>
+            <% if item.include?("#") %>
+              <%=item = link_to item, search_path(search: item.gsub('#','')) %>
+            <% else %>
+              <%=item%> 
+            <% end %>
+          <% end %>
+        </td>
         <td><%= link_to 'Ver', tweet %></td>
         <td><%= link_to 'Editar', edit_tweet_path(tweet) %></td>
         <td><%= link_to 'Eliminar', tweet, method: :delete, data: { confirm: 'Are you sure?' } %></td>

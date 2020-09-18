@@ -2,43 +2,31 @@ class TweetsController < ApplicationController
   before_action :set_tweet, only: [:show, :edit, :update, :destroy]
   before_action :set_current_tweet, only: [:likes, :retweet]
 
-  # GET /tweets
-  # GET /tweets.json
   def index
 
     if !current_user
 
-      @tweets = Tweet.all
-      organized_pages
-      @tweet= Tweet.new
-      @retweets= Retweet.all
+      @q=Tweet.ransack(params[:q])
+      @tweets=@q.result.order('created_at DESC').page params[:page]
+      @retweets=Retweet.all 
 
     else
-      @q = Tweet.tweets_for_me(current_user.followings.pluck(:id)).ransack(params[:q])
-      @tweets = @q.result.order('created_at DESC').page params[:page] 
-      @retweets=Retweet.retweets_for_me(current_user.followings.pluck(:id)).order('created_at DESC').page params[:page]  
-
+      @q=Tweet.tweets_for_me(current_user.followings.pluck(:id)).ransack(params[:q])
+      @tweets=@q.result.order('created_at DESC').page params[:page] 
+      @retweets=Retweet.retweets_for_me(current_user.followings.pluck(:id)).order('created_at DESC').page params[:page]
+      @tweet=Tweet.new  
     end
 
   end
 
-  # GET /tweets/1
-  # GET /tweets/1.json
   def show
     @likes = Like.all 
   end
 
-  # GET /tweets/new
   def new
     @tweet = Tweet.new
   end
 
-  # GET /tweets/1/edit
-  # def edit
-  # end
-
-  # POST /tweets
-  # POST /tweets.json
   def create
     @tweet = Tweet.new(tweet_params)
     @tweet.user = current_user
@@ -49,8 +37,6 @@ class TweetsController < ApplicationController
     end 
   end
 
-  # PATCH/PUT /tweets/1
-  # PATCH/PUT /tweets/1.json
   def update
     respond_to do |format|
       if @tweet.update(tweet_params)
@@ -63,8 +49,6 @@ class TweetsController < ApplicationController
     end
   end
 
-  # DELETE /tweets/1
-  # DELETE /tweets/1.json
   def destroy
     @tweet.destroy
     respond_to do |format|
@@ -83,6 +67,11 @@ class TweetsController < ApplicationController
     end 
     redirect_to root_path
   end
+
+  def search
+    @q=Tweet.ransack(content_cont_any: params[:search])
+    @tweets=@q.result
+  end 
 
   def retweet
     new_tweet = Tweet.create(content: @tweet.content, user: current_user, rt_ref:@tweet.id)
